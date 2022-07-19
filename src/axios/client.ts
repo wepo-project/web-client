@@ -30,7 +30,7 @@ client.waitingQueue = [];
 const Authorization = "Authorization";
 
 const axiosInstance = axios.create({
-  baseURL: import.meta.env.VITE_HOST,
+  baseURL: import.meta.env.VITE_HOST + "/v1",
 });
 
 const fontStyle = {
