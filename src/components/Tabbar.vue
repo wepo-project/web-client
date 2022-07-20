@@ -5,7 +5,8 @@ const route = useRoute();
 const tabs = [
     { name: "home", title: "HOME" },
     { name: "send", title: "SEND" },
-    { name: "my_post", title: "ME" },
+    { name: "notice", title: "NOTICE" },
+    { name: "me", title: "ME" },
 ];
 const getIndex = () => tabs.findIndex((e) => route.name == e.name)
 const state = reactive({

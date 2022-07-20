@@ -3,8 +3,10 @@ import Home from "./components/Home.vue";
 import Login from "./components/Login.vue";
 import Register from "./components/Register.vue";
 import SendPost from "./components/SendPost.vue";
+import Me from "./components/Me.vue";
 import MyPost from "./components/MyPost.vue";
 import PostDetail from "./components/PostDetail.vue";
+import Notice from "./components/Notice.vue";
 
 const routes: RouteRecordRaw[] = [
     {
@@ -28,6 +30,11 @@ const routes: RouteRecordRaw[] = [
         component: SendPost,
     },
     {
+        path: '/me',
+        name: "me",
+        component: Me,
+    },
+    {
         path: '/my_post',
         name: "my_post",
         component: MyPost,
@@ -36,6 +43,11 @@ const routes: RouteRecordRaw[] = [
         path: '/po/:id',
         name: 'po',
         component: PostDetail,
+    },
+    {
+        path: '/notice',
+        name: 'notice',
+        component: Notice,
     }
 ]
 

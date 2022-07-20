@@ -4,17 +4,21 @@ import client from "../axios/client";
 import Heart from "../svg/heart.vue";
 import Comment from "../svg/comment.vue";
 import Hate from "../svg/Hate.vue";
-import { useRouter } from "vue-router";
+import { RouterLink, useRouter } from "vue-router";
 import { PostModel } from "../data";
 import store from "../store";
+import utils from "../utils/utils";
 
 const router = useRouter();
 
 const props = withDefaults(defineProps<{
   item?: PostModel
   showDelete?: boolean
+  /// 防止跳转
+  preventJump?: boolean
 }>(), {
   showDelete: false,
+  preventJump: false,
 });
 
 let id = props.item?.id.toString();
@@ -27,13 +31,6 @@ const state = reactive({
   comment_count: props.item?.comment_count ?? 0,
   is_me: props.item?.sender.id == store.state.user?.id, // 是我自己发送的
 })
-
-const check_details = async () => {
-  router.push({
-    name: 'po',
-    params: { id },
-  });
-}
 
 const like = async () => {
   let is_cancel = state.liked;
@@ -49,14 +46,6 @@ const like = async () => {
     state.liked = !is_cancel
   }
 };
-
-const onOrigin = async (_id: string) => {
-  console.log(`onOrigin ${_id}`)
-  router.push({
-    name: 'po',
-    params: { id: _id },
-  });
-}
 
 const hate = async () => {
   let is_cancel = state.hated;
@@ -78,32 +67,31 @@ const deletePost = async () => {
     data: { id }
   })
 }
-
 </script>
 
 <template>
   <template v-if="item!=null">
-    <div @click="check_details" class="p-2 border-b group">
+    <component :is="RouterLink" :to="{ name: 'po', params: { id } }" class="block p-3 border-b group">
       <div class="flex pb-2">
         <img class="avatar rounded" :src="item!.sender.avatar_url" alt="avatar"/>
         <div class="flex flex-col ml-2">
           <div class="dark-white">{{item!.sender.nick}}</div>
-          <div class="text-sm text-gray-500">{{ new Date(item!.create_time).toLocaleString() }}</div>
+          <div class="text-sm text-gray-500">{{ utils.format_time(item!.create_time) }}</div>
         </div>
       </div>
       <div class="mb-2 text-base dark-white whitespace-pre-line">{{ item!.content }}</div>
       <template v-if="item!.origin_id">
-        <div class="cursor-pointer border border-gray-400 rounded-md p-2 mb-2" @click.stop="onOrigin(item!.origin_id!)">
+        <router-link :to="{ name: 'po', params: { id: item!.origin_id! } }" class="cursor-pointer block border border-gray-400 rounded-md p-2 mb-2">
           <div class="text-sm text-gray-400 mb-1">Origin</div>
           <div class="flex pb-2">
             <img class="avatar rounded" :src="item!.origin_sender!.avatar_url" alt="avatar"/>
             <div class="flex flex-col ml-2">
               <div class="dark-white">{{item!.origin_sender!.nick}}</div>
-              <div class="text-sm text-gray-500">{{ new Date(item!.origin_create_time!).toLocaleString() }}</div>
+              <div class="text-sm text-gray-500">{{ utils.format_time(item!.origin_create_time!) }}</div>
             </div>
           </div>
           <div class="dark-white text-sm">{{item!.origin_content!}}</div>
-        </div>
+        </router-link>
       </template>
       <div class="flex items-center h-8" @click.stop="void">
         <Heart v-bind:liked="state.liked" @click="like"/>
@@ -116,7 +104,7 @@ const deletePost = async () => {
           class="ml-auto text-stone-400 cursor-pointer border border-transparent px-2 rounded-md hidden group-hover:block hover:border-gray-100 hover:shadow-md hover:text-red-500"
           @click.stop="deletePost">DELETE</div>
       </div>
-    </div>
+    </component>
   </template>
 </template>
 

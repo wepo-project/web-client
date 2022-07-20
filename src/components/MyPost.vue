@@ -2,13 +2,12 @@
 import { onMounted } from "@vue/runtime-core";
 import { reactive } from "vue";
 import client from "../axios/client";
+import { defaultPaging, PagingData, PostModel } from "../data";
 import Post from "./Post.vue";
 
-const state = reactive({
-  list: <any>[],
-  page: 0,
-  next: true,
-});
+const state = reactive<PagingData<PostModel>>(
+  defaultPaging()
+);
 
 const getNextPage = async () => {
   state.page = state.page + 1;
