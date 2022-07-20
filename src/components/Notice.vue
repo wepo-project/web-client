@@ -2,7 +2,7 @@
 import { onMounted, reactive } from 'vue';
 import { RouterLink } from 'vue-router';
 import client from '../axios/client';
-import { NoticeComment, PagingData, defaultPaging } from '../data';
+import { NoticeComment, PagingData, defaultPaging, NoticeLike } from '../data';
 import utils from '../utils/utils';
 
 interface Tab {
@@ -15,10 +15,12 @@ const hates_tab: Tab = { name: "Hates" };
 
 const state = reactive<{
     comments: PagingData<NoticeComment>,
+    likes: PagingData<NoticeLike>,
     tabs: Tab[],
     currTab: Tab,
 }>({
     comments: defaultPaging(),
+    likes: defaultPaging(),
     tabs: [
         comments_tab,
         likes_tab,
@@ -28,16 +30,36 @@ const state = reactive<{
 })
 
 onMounted(async () => {
+    onTabChange(comments_tab);
+})
+
+const onTabChange = async (item: Tab) => {
+    state.currTab = item;
+    switch(item.name) {
+        case comments_tab.name:
+            _onCommentPaging();
+            break;
+        case likes_tab.name:
+            _onLikePaging();
+            break;
+    }
+}
+
+const _onCommentPaging = async () => {
     let resp = await client.post('msg', 'comments', {
         data: { page: 1 },
     })
     if (resp.data.list) {
         state.comments = resp.data;
     }
-})
-
-const onTabChange = (item: Tab) => {
-    state.currTab = item;
+}
+const _onLikePaging = async () => {
+    let resp = await client.post('msg', 'likes', {
+        data: { page: 1 },
+    })
+    if (resp.data.list) {
+        state.likes = resp.data;
+    }
 }
 </script>
 

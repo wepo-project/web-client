@@ -6,7 +6,7 @@ import VConsole from "vconsole";
 import { initPlugin } from "vue-vconsole-devtools";
 import "./index.css"
 
-// initPlugin(new VConsole())
+initPlugin(new VConsole())
 
 const app = createApp(App)
 

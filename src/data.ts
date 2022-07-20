@@ -20,18 +20,6 @@ export interface UserData {
     avatar_url: string
 }
 
-export interface NoticeComment {
-    content: string,
-    create_time: string,
-    id: string,
-    post_id: string,
-    read: boolean,
-    sender: UserData,
-    origin: string,
-    origin_id: string,
-    origin_create_time: string,
-}
-
 export interface PagingData<T> {
     list: T[],
     page: number,
@@ -44,4 +32,25 @@ export const defaultPaging = <T>(): PagingData<T> => {
         page: 0,
         next: false,
     }
+}
+
+export interface NoticeComment {
+    id: string,
+    post_id: string,
+    read: boolean,
+    sender: UserData,
+    content: string,
+    create_time: string,
+    origin: string,
+    origin_id: string,
+    origin_create_time: string,
+}
+
+export interface NoticeLike {
+    id: string,
+    sender: UserData,
+    post_id: string,
+    read: boolean,
+    content: string,
+    create_time: string,
 }
