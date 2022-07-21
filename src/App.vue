@@ -18,7 +18,7 @@ onMounted(async () => {
   if (!succ) {
     router.push('/login')
   } else {
-    // router.push('/')
+    router.push('/')
   }
   state.isLogined = client.isLogined();
 })

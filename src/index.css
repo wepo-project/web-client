@@ -43,7 +43,7 @@
 
 @layer base {
     body {
-        @apply bg-white dark:bg-[#303237]
+        @apply bg-[#f6f6f6] dark:bg-[#303237]
     }
 }
 

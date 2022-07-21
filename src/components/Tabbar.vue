@@ -5,7 +5,7 @@ const route = useRoute();
 const tabs = [
     { name: "home", title: "HOME" },
     { name: "send", title: "SEND" },
-    { name: "notice", title: "NOTICE" },
+    { name: "notification", title: "NOTIFICATION" },
     { name: "me", title: "ME" },
 ];
 const getIndex = () => tabs.findIndex((e) => route.name == e.name)
@@ -17,7 +17,7 @@ watch(route, () => {
 })
 </script>
 <template>
-    <ul class="flex flex-row flex-wrap list-none border-b-0 pl-0">
+    <ul v-if="state.currTab != -1" class="flex flex-row flex-wrap list-none border-b-0 pl-0">
         <li v-for="(item, index) in tabs" class="flex-auto flex items-center justify-center" role="presentation">
             <router-link :to="{ name: item.name }" class="
             w-full
@@ -29,7 +29,7 @@ watch(route, () => {
             uppercase
             border-x-0 border-t-0 border-b-2 border-transparent
             px-6
-            py-3
+            py-5
             dark-white
             hover:border-transparent hover:bg-gray-100
             focus:border-transparent

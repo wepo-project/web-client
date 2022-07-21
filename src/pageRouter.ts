@@ -1,53 +1,45 @@
 import { createRouter, createWebHashHistory, createWebHistory, RouteRecordRaw } from 'vue-router';
-import Home from "./components/Home.vue";
-import Login from "./components/Login.vue";
-import Register from "./components/Register.vue";
-import SendPost from "./components/SendPost.vue";
-import Me from "./components/Me.vue";
-import MyPost from "./components/MyPost.vue";
-import PostDetail from "./components/PostDetail.vue";
-import Notice from "./components/Notice.vue";
 
 const routes: RouteRecordRaw[] = [
     {
         path: '/',
         name: "home",
-        component: Home,
+        component: import('./components/Home.vue'),
     },
     {
         path: '/login',
         name: 'login',
-        component: Login,
+        component: import('./components/Login.vue'),
     },
     {
         path: '/reg',
         name: "reg",
-        component: Register,
+        component: import('./components/Register.vue'),
     },
     {
         path: '/send',
         name: "send",
-        component: SendPost,
+        component: import('./components/SendPost.vue'),
     },
     {
         path: '/me',
         name: "me",
-        component: Me,
+        component: import('./components/Me.vue'),
     },
     {
         path: '/my_post',
         name: "my_post",
-        component: MyPost,
+        component: import('./components/MyPost.vue'),
     },
     {
         path: '/po/:id',
         name: 'po',
-        component: PostDetail,
+        component: import('./components/PostDetail.vue'),
     },
     {
-        path: '/notice',
-        name: 'notice',
-        component: Notice,
+        path: '/notification',
+        name: 'notification',
+        component: import('./components/Notification.vue'),
     }
 ]
 

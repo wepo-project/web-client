@@ -4,6 +4,7 @@ import client from '../axios/client';
 import { PostModel } from '../data';
 import router from '../pageRouter';
 import Post from './Post.vue';
+import NavBar from './NavBar.vue';
 
 let id = router.currentRoute.value.params.id as string;
 console.log(`id:${id}`)
@@ -48,7 +49,7 @@ async function onComment() {
 </script>
 
 <template>
-  <div>
+  <NavBar title="Detail">
     <Post v-if="state.post" :item="state.post" :show-delete="true" :prevent-jump="true"></Post>
     <div class="flex flex-col px-2 my-2">
       <textarea v-model="content" class="input w-full h-20 p-2 "></textarea>
@@ -60,5 +61,5 @@ async function onComment() {
         <br/>
       </div>
     </template>
-  </div>
+  </NavBar>
 </template>

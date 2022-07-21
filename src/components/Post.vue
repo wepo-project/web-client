@@ -77,36 +77,37 @@ const check_detail = () => {
 </script>
 
 <template>
-  <template v-if="item!=null">
+  <template v-if="item != null">
     <div class="block p-3 border-b group" @click="check_detail">
       <div class="flex pb-2">
-        <img class="avatar rounded" :src="item!.sender.avatar_url" alt="avatar"/>
+        <img class="avatar rounded" :src="item!.sender.avatar_url" alt="avatar" />
         <div class="flex flex-col ml-2">
-          <div class="dark-white">{{item!.sender.nick}}</div>
+          <div class="dark-white">{{ item!.sender.nick }}</div>
           <div class="text-sm text-gray-500">{{ utils.format_time(item!.create_time) }}</div>
         </div>
       </div>
       <div class="mb-2 text-base dark-white whitespace-pre-line">{{ item!.content }}</div>
       <template v-if="item!.origin_id">
-        <router-link :to="{ name: 'po', params: { id: item!.origin_id! } }" class="cursor-pointer block border border-gray-400 rounded-md p-2 mb-2">
+        <div class="block border border-gray-400 rounded-md p-2 mb-2 hover:bg-gray-100 dark:hover:bg-gray-800"
+          @click.stop="$router.push({ name: 'po', params: { id: item!.origin_id! } })">
           <div class="text-sm text-gray-400 mb-1">Origin</div>
           <div class="flex pb-2">
-            <img class="avatar rounded" :src="item!.origin_sender!.avatar_url" alt="avatar"/>
+            <img class="avatar rounded" :src="item!.origin_sender!.avatar_url" alt="avatar" />
             <div class="flex flex-col ml-2">
-              <div class="dark-white">{{item!.origin_sender!.nick}}</div>
+              <div class="dark-white">{{ item!.origin_sender!.nick }}</div>
               <div class="text-sm text-gray-500">{{ utils.format_time(item!.origin_create_time!) }}</div>
             </div>
           </div>
-          <div class="dark-white text-sm">{{item!.origin_content!}}</div>
-        </router-link>
+          <div class="dark-white text-sm whitespace-pre-line">{{ item!.origin_content! }}</div>
+        </div>
       </template>
       <div class="flex items-center h-8" @click.stop="void">
-        <Heart v-bind:liked="state.liked" @click="like"/>
-        <div class="ml-1 mr-2 dark-white select-none">{{state.like_count}}</div>
-        <Comment/>
-        <div class="ml-1 mr-2 dark-white select-none">{{state.comment_count}}</div>
-        <Hate v-bind:hated="state.hated" @click="hate"/>
-        <div class="ml-1 mr-2 dark-white select-none">{{state.hate_count}}</div>
+        <Heart v-bind:liked="state.liked" @click="like" />
+        <div class="ml-1 mr-2 dark-white select-none">{{ state.like_count }}</div>
+        <Comment />
+        <div class="ml-1 mr-2 dark-white select-none">{{ state.comment_count }}</div>
+        <Hate v-bind:hated="state.hated" @click="hate" />
+        <div class="ml-1 mr-2 dark-white select-none">{{ state.hate_count }}</div>
         <div v-if="showDelete && state.is_me"
           class="ml-auto text-stone-400 cursor-pointer border border-transparent px-2 rounded-md hidden group-hover:block hover:border-gray-100 hover:shadow-md hover:text-red-500"
           @click.stop="deletePost">DELETE</div>

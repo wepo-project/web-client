@@ -32,8 +32,5 @@ onMounted(async () => {
     <div v-for="(item) in state.list" :key="item.id">
       <Post :item="item"></Post>
     </div>
-    <div v-if="!state.list || !state.list.length">
-      It's empty here
-    </div>
   </div>
 </template>

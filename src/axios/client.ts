@@ -72,6 +72,7 @@ axiosInstance.defaults.transformResponse = [data => {
 export default client;
 
 const getSavedToken = () => localStorage.getItem('_t');
+const removeSavedToken = () => localStorage.removeItem('_t');
 
 const saveToken = (token: string): boolean => {
   if (typeof token !== 'string') {
@@ -143,11 +144,15 @@ client.loginWithAccount = async (
 client.loginWithToken = async (): Promise<boolean> => {
   const token = getSavedToken();
   if (token) {
-    return wrapLoginCall(() => client.get('user', 'token_refresh', {
+    let result = await wrapLoginCall(() => client.get('user', 'token_refresh', {
       headers: {
         [Authorization]: token
       }
     }));
+    if (!result) {
+      removeSavedToken()
+    }
+    return result
   }
   return false;
 }
@@ -201,7 +206,7 @@ const wrapLoginCall = async (
 
 client.logout = () => {
   delete axiosInstance.defaults.headers.common[Authorization]
-  localStorage.removeItem('_t');
+  removeSavedToken()
   store.commit('logout')
   router.push('/login')
   window.location.reload()
