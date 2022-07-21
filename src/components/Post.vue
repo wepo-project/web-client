@@ -67,11 +67,18 @@ const deletePost = async () => {
     data: { id }
   })
 }
+
+const check_detail = () => {
+  if (!props.preventJump) {
+    router.push({ name: 'po', params: { id } })
+  }
+}
+
 </script>
 
 <template>
   <template v-if="item!=null">
-    <component :is="RouterLink" :to="{ name: 'po', params: { id } }" class="block p-3 border-b group">
+    <div class="block p-3 border-b group" @click="check_detail">
       <div class="flex pb-2">
         <img class="avatar rounded" :src="item!.sender.avatar_url" alt="avatar"/>
         <div class="flex flex-col ml-2">
@@ -104,7 +111,7 @@ const deletePost = async () => {
           class="ml-auto text-stone-400 cursor-pointer border border-transparent px-2 rounded-md hidden group-hover:block hover:border-gray-100 hover:shadow-md hover:text-red-500"
           @click.stop="deletePost">DELETE</div>
       </div>
-    </component>
+    </div>
   </template>
 </template>
 
