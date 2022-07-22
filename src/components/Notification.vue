@@ -5,6 +5,7 @@ import client from '../axios/client';
 import { NoticeComment, PagingData, defaultPaging, NoticeLike } from '../data';
 import store from '../store';
 import utils from '../utils/utils';
+import NavBar from './NavBar.vue';
 
 interface Tab {
     name: string
@@ -17,11 +18,13 @@ const hates_tab: Tab = { name: "Hates" };
 const state = reactive<{
     comments: PagingData<NoticeComment>,
     likes: PagingData<NoticeLike>,
+    hates: PagingData<NoticeLike>,
     tabs: Tab[],
     currTab: Tab,
 }>({
     comments: defaultPaging(),
     likes: defaultPaging(),
+    hates: defaultPaging(),
     tabs: [
         comments_tab,
         likes_tab,
@@ -43,6 +46,9 @@ const onTabChange = async (item: Tab) => {
         case likes_tab.name:
             _onLikePaging();
             break;
+        case hates_tab.name:
+            _onHatePaging();
+            break;
     }
 }
 
@@ -62,11 +68,19 @@ const _onLikePaging = async () => {
         state.likes = resp.data;
     }
 }
+const _onHatePaging = async () => {
+    let resp = await client.post('msg', 'hates', {
+        data: { page: 1 },
+    })
+    if (resp.data.list) {
+        state.hates = resp.data;
+    }
+}
 const nick = store.state.user?.nick ?? '';
 </script>
 
 <template>
-    <div>
+    <NavBar title="Notification" :has-back="false">
         <ul class="tab-container">
             <li v-for="(item, index) in state.tabs" :class="index == state.tabs.length - 1 ? '' : 'mr-2'">
                 <a href="#" class="tab" :class="state.currTab.name == item.name ? 'active' : ''"
@@ -112,5 +126,23 @@ const nick = store.state.user?.nick ?? '';
                 </div>
             </div>
         </div>
-    </div>
+        <div v-if="state.currTab.name == hates_tab.name">
+            <div v-for="(item) in state.hates.list" class="block border-b px-4 py-3"
+                @click="$router.push({ name: 'po', params: { id: item.post_id } })">
+                <div class="flex">
+                    <img class="w-10 h-10 rounded" :src="item.sender.avatar_url" alt="avatar" />
+                    <div class="flex-1 flex-col ml-4 mr-1">
+                        <div class="mb-1 max-w-xs">
+                            <span class="text-base dark-white text-violet-400 whitespace-pre-wrap break-all break-words">{{ item.sender.nick }}</span>
+                            <span class="text-base mr-2 text-neutral-500 dark:text-neutral-400"> 反感了你</span>
+                        </div>
+                        <div class="text-sm text-gray-500">{{ utils.format_time(item.create_time, utils.MONTH) }}</div>
+                    </div>
+                    <div class="flex-shrink-0 block cursor-pointer rounded bg-gray-100 dark:bg-gray-800 p-2 w-[20vw] whitespace-pre-line">
+                        <div class="mb text-xs dark-white whitespace-pre-line">{{ item.content }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </NavBar>
 </template>

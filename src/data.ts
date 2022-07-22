@@ -46,7 +46,7 @@ export interface NoticeComment {
     origin_create_time: string,
 }
 
-export interface NoticeLike {
+export interface NoticePost {
     id: string,
     sender: UserData,
     post_id: string,

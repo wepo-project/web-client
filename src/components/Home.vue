@@ -4,6 +4,7 @@ import { reactive } from "vue";
 import client from "../axios/client";
 import { defaultPaging, PagingData, PostModel } from "../data";
 import Post from "./Post.vue";
+import NavBar from "./NavBar.vue";
 
 const state = reactive<PagingData<PostModel>>(
   defaultPaging()
@@ -28,9 +29,9 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div>
+  <NavBar :has-back="false" title="HOME">
     <div v-for="(item) in state.list" :key="item.id">
       <Post :item="item"></Post>
     </div>
-  </div>
+  </NavBar>
 </template>

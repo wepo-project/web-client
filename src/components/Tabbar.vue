@@ -1,12 +1,15 @@
 <script setup lang="ts">
 import { RouterLink, useRoute } from 'vue-router';
 import { reactive, watch } from 'vue';
+import HomeIcon from '../svg/tabs/HomeIcon.vue';
+import UserIcon from '../svg/tabs/UserIcon.vue';
+import NoticeIcon from '../svg/tabs/NoticeIcon.vue';
 const route = useRoute();
 const tabs = [
-    { name: "home", title: "HOME" },
-    { name: "send", title: "SEND" },
-    { name: "notification", title: "NOTIFICATION" },
-    { name: "me", title: "ME" },
+    { name: "home", title: "HOME", icon: HomeIcon },
+    // { name: "send", title: "SEND" },
+    { name: "notification", title: "NOTIFICATION", icon: NoticeIcon, },
+    { name: "me", title: "ME", icon: UserIcon },
 ];
 const getIndex = () => tabs.findIndex((e) => route.name == e.name)
 const state = reactive({
@@ -21,7 +24,9 @@ watch(route, () => {
         <li v-for="(item, index) in tabs" class="flex-auto flex items-center justify-center" role="presentation">
             <router-link :to="{ name: item.name }" class="
             w-full
-            block
+            flex
+            items-center
+            justify-center
             font-medium
             text-center
             text-xs
@@ -29,13 +34,16 @@ watch(route, () => {
             uppercase
             border-x-0 border-t-0 border-b-2 border-transparent
             px-6
-            py-5
+            py-4
             dark-white
+            select-none
             hover:border-transparent hover:bg-gray-100
             focus:border-transparent
             dark:hover:bg-[#48484f]
             active
-            " :class="state.currTab==index?'bg-gray-100 dark:bg-[#48484f]':''">{{item.title}}</router-link>
+            " :class="state.currTab==index?'bg-gray-100 dark:bg-[#48484f]':''">
+                <component :is="item.icon"/>
+            </router-link>
         </li>
     </ul>
 </template>

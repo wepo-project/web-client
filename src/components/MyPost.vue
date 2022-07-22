@@ -4,6 +4,7 @@ import { reactive } from "vue";
 import client from "../axios/client";
 import { defaultPaging, PagingData, PostModel } from "../data";
 import Post from "./Post.vue";
+import NavBar from "./NavBar.vue";
 
 const state = reactive<PagingData<PostModel>>(
   defaultPaging()
@@ -28,7 +29,7 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div>
+  <NavBar title="My Posts">
     <div v-for="(item) in state.list" :key="item.id">
       <Post :item="item" :show-delete="true"></Post>
       <br />
@@ -36,5 +37,5 @@ onMounted(async () => {
     <div v-if="!state.list || !state.list.length">
       You Haven't Send Any Post.
     </div>
-  </div>
+  </NavBar>
 </template>
