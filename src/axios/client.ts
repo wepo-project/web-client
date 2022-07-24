@@ -49,6 +49,7 @@ axiosInstance.interceptors.response.use((resp) => {
   console.log(`%c${(new Date()).toLocaleString()} [${resp.config.method}(${resp.status})]%o`, fontStyle.response, resp.config.url, resp.data)
   return resp;
 }, (err) => {
+  console.trace(err)
   if (err.response && err.response.status == 401) {
     console.log("登录失效")
     router.push('/login');

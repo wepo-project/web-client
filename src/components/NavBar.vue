@@ -10,7 +10,7 @@ const props = withDefaults(defineProps<{
 
 <template>
     <div class="flex flex-col">
-        <div class="relative flex items-center justify-center h-11 bg-white drop-shadow">
+        <div class="relative flex items-center justify-center h-11 bg-white dark:bg-[#202023] dark:text-white drop-shadow">
             <div v-if="hasBack" class="absolute left-3 flex items-center justify-center h-8 w-8 bg-transparent hover:bg-gray-100" @click="$router.back()">
                 <BackIcon />
             </div>

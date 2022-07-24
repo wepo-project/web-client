@@ -29,7 +29,11 @@ const onAuth = () => {
 
 <template>
   <div class="flex flex-col h-screen">
-    <router-view @auth="onAuth" class="flex-auto overflow-scroll hidden-scrollbar" :key="route.fullPath"></router-view>
+    <router-view @auth="onAuth" class="flex-auto overflow-scroll hidden-scrollbar" v-slot="{ Component }">
+      <transition name="fade">
+        <component :is="Component" :key="route.fullPath"></component>
+      </transition>
+    </router-view>
     <tabbar v-if="state.isLogined"></tabbar>
   </div>
 </template>

@@ -78,7 +78,7 @@ const check_detail = () => {
 
 <template>
   <template v-if="item != null">
-    <div class="block p-3 border-b group" @click="check_detail">
+    <div class="block content_container p-3 border-b dark:border-gray-500 group" @click="check_detail">
       <div class="flex pb-2">
         <img class="avatar rounded" :src="item!.sender.avatar_url" alt="avatar" />
         <div class="flex flex-col ml-2">
@@ -88,7 +88,7 @@ const check_detail = () => {
       </div>
       <div class="mb-2 text-base dark-white whitespace-pre-line">{{ item!.content }}</div>
       <template v-if="item!.origin_id">
-        <div class="block border border-gray-400 rounded-md p-2 mb-2 hover:bg-gray-100 dark:hover:bg-gray-800"
+        <div class="block drop-shadow-md reference_content dark:filter-none rounded-md p-2 mb-2"
           @click.stop="$router.push({ name: 'po', params: { id: item!.origin_id! } })">
           <div class="text-sm text-gray-400 mb-1">Origin</div>
           <div class="flex pb-2">

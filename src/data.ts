@@ -54,3 +54,11 @@ export interface NoticePost {
     content: string,
     create_time: string,
 }
+
+export interface NoticeFriend {
+    id: string,
+    sender: UserData,
+    read: boolean,
+    msg: string,
+    create_time: string,
+}
