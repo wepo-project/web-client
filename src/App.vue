@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { RouterLink, useRoute } from 'vue-router';
+import { useRoute } from 'vue-router';
 import { onMounted, reactive } from 'vue';
 import client from './axios/client';
 import router from './pageRouter';
@@ -10,6 +10,7 @@ const state = reactive({
   isLogined: false,
   // loaded: false,
 })
+
 onMounted(async () => {
   let succ = false;
   try {
@@ -22,6 +23,7 @@ onMounted(async () => {
   }
   state.isLogined = client.isLogined();
 })
+
 const onAuth = () => {
   state.isLogined = true;
 }

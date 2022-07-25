@@ -16,7 +16,7 @@ const props = withDefaults(defineProps<{
             </div>
             <div class="font-bold text-lg select-none">{{props.title}}</div>
         </div>
-        <div class="flex-1 overflow-scroll hidden-scrollbar">
+        <div class="flex-1 overflow-hidden">
             <slot />
         </div>
     </div>

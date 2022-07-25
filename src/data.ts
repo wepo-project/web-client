@@ -30,7 +30,7 @@ export const defaultPaging = <T>(): PagingData<T> => {
     return {
         list: [],
         page: 0,
-        next: false,
+        next: true,
     }
 }
 
