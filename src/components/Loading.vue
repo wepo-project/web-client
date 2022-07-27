@@ -29,6 +29,10 @@ props.promise.then(() => {
     clearTimeout(timer);
     console.log("done!")
     setClose();
+}).catch(() => {
+    clearTimeout(timer);
+    console.log("error!")
+    setClose();
 });
 
 const onAniEnd = (e: AnimationEvent) => {
