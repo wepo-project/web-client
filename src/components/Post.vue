@@ -16,9 +16,12 @@ const props = withDefaults(defineProps<{
   showDelete?: boolean
   /// 防止跳转
   preventJump?: boolean
+  /// 折叠
+  collapse?: boolean
 }>(), {
   showDelete: false,
   preventJump: false,
+  collapse: true,
 });
 
 let id = props.item?.id.toString();
@@ -78,7 +81,7 @@ const check_detail = () => {
 
 <template>
   <template v-if="item != null">
-    <div class="block content_container p-3 border-b dark:border-gray-500 group" @click="check_detail">
+    <div class="block content_container p-3 border-b dark:border-gray-500 group" :class="collapse?'select-none':''" @click="check_detail">
       <div class="flex pb-2">
         <img class="avatar rounded" :src="item!.sender.avatar_url" alt="avatar" />
         <div class="flex flex-col ml-2">
@@ -86,11 +89,17 @@ const check_detail = () => {
           <div class="text-sm text-gray-500">{{ utils.format_time(item!.create_time) }}</div>
         </div>
       </div>
-      <div class="mb-2 text-base dark-white whitespace-pre-line">{{ item!.content }}</div>
+      <div class="mb-2 text-base dark-white whitespace-pre-line">
+        <span>{{ item!.content }}</span>
+        <template v-if="collapse && item!.content.length === 100">
+          <span>...</span>
+          <span class="text-blue-500">全文</span>
+        </template>
+      </div>
       <template v-if="item!.origin_id">
         <div class="block drop-shadow-md reference_content dark:filter-none rounded-md p-2 mb-2"
           @click.stop="$router.push({ name: 'po', params: { id: item!.origin_id! } })">
-          <div class="text-sm text-gray-400 mb-1">Origin</div>
+          <div class="text-sm text-gray-400 mb-1">原文</div>
           <div class="flex pb-2">
             <img class="avatar rounded" :src="item!.origin_sender!.avatar_url" alt="avatar" />
             <div class="flex flex-col ml-2">

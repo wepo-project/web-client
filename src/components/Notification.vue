@@ -1,18 +1,19 @@
 <script setup lang="ts">
-import { onMounted, reactive } from 'vue';
+import { onMounted, reactive, watch } from 'vue';
 import client from '../axios/client';
 import { NoticeComment, PagingData, defaultPaging, NoticePost, NoticeFriend } from '../data';
 import utils from '../utils/utils';
 import NavBar from './NavBar.vue';
 import Tabs, { Tab } from './Tabs.vue';
+import SideBar from './SideBar.vue';
 
 
-const comments_tab: Tab = { name: "Comments", emoji: "📩" };
-const likes_tab: Tab = { name: "Likes", emoji: "👍" };
-const hates_tab: Tab = { name: "Hates", emoji: "👎" };
+const comments_tab: Tab = { name: "评论", emoji: "📩" };
+const likes_tab: Tab = { name: "点赞", emoji: "👍" };
+const hates_tab: Tab = { name: "反感", emoji: "👎" };
 
-const friend_add_tab: Tab = { name: "New Friend", emoji: "👬" };
-const friend_remove_tab: Tab = { name: "Lost Friend", emoji: "💔" };
+const friend_add_tab: Tab = { name: "好友添加", emoji: "👬" };
+const friend_remove_tab: Tab = { name: "好友移除", emoji: "💔" };
 
 const state = reactive<{
     comments: PagingData<NoticeComment>,
@@ -20,8 +21,10 @@ const state = reactive<{
     hates: PagingData<NoticePost>,
     friend_add_list: PagingData<NoticeFriend>,
     friend_remove_list: PagingData<NoticeFriend>,
+    showSideBar: boolean
     tabs: Tab[],
-    currTab: string,
+    currTabName: string,
+    currTabIndex: number,
 }>({
     comments: defaultPaging(),
     likes: defaultPaging(),
@@ -31,15 +34,26 @@ const state = reactive<{
     tabs: [
         comments_tab, likes_tab, hates_tab, friend_add_tab, friend_remove_tab,
     ],
-    currTab: comments_tab.name,
+    showSideBar: false,
+    currTabName: '',
+    currTabIndex: -1,
 })
 
 onMounted(async () => {
+    setTab(comments_tab.name)
     onTabChange();
 })
 
+const setTab = (name: string) => {
+    let index = state.tabs.findIndex(e => e.name === name);
+    if (index !== -1) {
+        state.currTabName = name;
+        state.currTabIndex = index
+    }
+} 
+
 const onTabChange = async (name: string = comments_tab.name) => {
-    state.currTab = name;
+    setTab(name);
     switch (name) {
         case comments_tab.name:
             _get_data('msg', 'comments', 'comments');
@@ -57,6 +71,7 @@ const onTabChange = async (name: string = comments_tab.name) => {
             _get_data('msg', 'friend_remove', 'friend_remove_list');
             break;
     }
+    state.showSideBar = false;
 }
 
 async function _get_data(model: string, func: string, field: keyof typeof state) {
@@ -66,22 +81,25 @@ async function _get_data(model: string, func: string, field: keyof typeof state)
     utils.showLoading(fut);
     const resp = await fut;
     if (resp.data.list) {
-        state[field] = resp.data;
+        state[field as any] = resp.data;
     }
+
 }
 
 // const nick = store.state.user?.nick ?? '';
 </script>
 
 <template>
-    <NavBar title="Notification" :has-back="false">
+    <NavBar :title="(state.tabs[state.currTabIndex]?.name ?? '') + '通知'" :has-back="false" :hasMenu="true" @menu-open="state.showSideBar = true">
         <div class="flex h-full flex-shrink-0">
-            <Tabs :tabs="state.tabs" :initial="0" :horizontal="false" @change="onTabChange" />
+            <SideBar :tabs="state.tabs" :initial="state.tabs.findIndex(e => e.name == state.currTabName)"
+                @change="onTabChange" :show="state.showSideBar" @close="state.showSideBar = false">
+            </SideBar>
             <div class="flex-1">
-                <template v-if="state.currTab == comments_tab.name">
+                <template v-if="state.currTabName == comments_tab.name">
                     <div v-for="(item) in state.comments.list"
                         @click="$router.push({ name: 'po', params: { id: item.post_id } })"
-                        class="content_container block border-b p-2">
+                        class="content_container block border-b p-3">
                         <div class="flex mb-1">
                             <img class="w-10 h-10 rounded" :src="item.sender.avatar_url" alt="avatar" />
                             <div class="flex-1 flex flex-col ml-2">
@@ -102,8 +120,8 @@ async function _get_data(model: string, func: string, field: keyof typeof state)
                         </div>
                     </div>
                 </template>
-                <template v-if="state.currTab == likes_tab.name">
-                    <div v-for="(item) in state.likes.list" class="content_container block border-b p-2"
+                <template v-if="state.currTabName == likes_tab.name">
+                    <div v-for="(item) in state.likes.list" class="content_container block border-b p-3"
                         @click="$router.push({ name: 'po', params: { id: item.post_id } })">
                         <div class="flex">
                             <img class="w-10 h-10 rounded" :src="item.sender.avatar_url" alt="avatar" />
@@ -127,8 +145,8 @@ async function _get_data(model: string, func: string, field: keyof typeof state)
                         </div>
                     </div>
                 </template>
-                <template v-if="state.currTab == hates_tab.name">
-                    <div v-for="(item) in state.hates.list" class="content_container block border-b p-2"
+                <template v-if="state.currTabName == hates_tab.name">
+                    <div v-for="(item) in state.hates.list" class="content_container block border-b p-3"
                         @click="$router.push({ name: 'po', params: { id: item.post_id } })">
                         <div class="flex">
                             <img class="w-10 h-10 rounded" :src="item.sender.avatar_url" alt="avatar" />
@@ -151,7 +169,7 @@ async function _get_data(model: string, func: string, field: keyof typeof state)
                         </div>
                     </div>
                 </template>
-                <template v-if="state.currTab == friend_add_tab.name">
+                <template v-if="state.currTabName == friend_add_tab.name">
                     <div v-for="(item) in state.friend_add_list.list"
                         class="content_container block border-b px-4 py-3">
                         <div class="flex">
@@ -167,7 +185,7 @@ async function _get_data(model: string, func: string, field: keyof typeof state)
                         </div>
                     </div>
                 </template>
-                <template v-else-if="state.currTab == friend_remove_tab.name">
+                <template v-else-if="state.currTabName == friend_remove_tab.name">
                     <div v-for="(item) in state.friend_remove_list.list"
                         class="content_container block border-b px-4 py-3">
                         <div class="flex">

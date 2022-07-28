@@ -32,11 +32,8 @@ async function onRegister() {
       <input v-model.trim="pwd" type="password" class="rounded-lg bg-gray-50 border text-gray-900 focus:ring-blue-500 focus:border-blue-500 block flex-1 min-w-0 w-full text-sm border-gray-300 p-2.5  dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="password">
     </div>
     <div class="flex w-full">
-      <div class="flex-auto btn btn-green mr-1 text-center" @click="onRegister">Register</div>
-      <router-link class="flex-shrink btn btn-main ml-1 text-center border" to="/login">Login</router-link>
+      <div class="flex-auto btn btn-green mr-1 text-center" @click="onRegister">注册</div>
+      <router-link class="flex-shrink btn btn-main ml-1 text-center border" to="/login">去登录</router-link>
     </div>
   </div>
 </template>
-
-<style scoped>
-</style>

@@ -7,8 +7,7 @@ import Post from './Post.vue';
 import NavBar from './NavBar.vue';
 import utils from '../utils/utils';
 
-let id = router.currentRoute.value.params.id as string;
-console.log(`id:${id}`)
+let id: string
 
 let state = reactive({
   post: null as PostModel | null,
@@ -16,6 +15,9 @@ let state = reactive({
 })
 
 onMounted(async () => {
+  id = router.currentRoute.value.params.id as string;
+  console.log(`id: ${id}`, router.currentRoute.value)
+
   const fut = client.get('post', 'get_post', {
     params: { id },
   })
@@ -52,8 +54,8 @@ async function onComment() {
 </script>
 
 <template>
-  <NavBar title="Detail">
-    <Post v-if="state.post" :item="state.post" :show-delete="true" :prevent-jump="true"></Post>
+  <NavBar title="详情">
+    <Post v-if="state.post" :item="state.post" :show-delete="true" :prevent-jump="true" :collapse="false"></Post>
     <div class="h-2"></div>
     <div class="flex flex-col px-2 my-2">
       <textarea v-model="content" class="input w-full h-20 p-2 "></textarea>
@@ -62,7 +64,7 @@ async function onComment() {
     <template v-if="state.comments && state.comments.length">
       <div v-for="(item) in state.comments">
         <Post :item="item"></Post>
-        <br/>
+        <br />
       </div>
     </template>
   </NavBar>

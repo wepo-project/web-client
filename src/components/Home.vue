@@ -10,17 +10,19 @@ import { defaultPaging, PagingData, PostModel } from "../data";
 import Post from "./Post.vue";
 import NavBar from "./NavBar.vue";
 import utils from "../utils/utils";
+import Paging from "./Paging.vue";
+import { Deferred } from "../utils/deferred";
 
 const state = reactive<PagingData<PostModel>>(
   utils.clone(oldState)
 );
 
 let pulling = false;
-const getNextPage = async () => {
+const getNextPage = async (initial = false) => {
   if (pulling) {
     return;
   }
-  if (!state.next) {
+  if (!initial && !state.next) {
     console.log("没有更多了");
     return;
   }
@@ -29,7 +31,7 @@ const getNextPage = async () => {
   try {
     const resp = await client.get("post", "browse", {
       params: {
-        page: oldPage + 1,
+        page: initial ? 1 : oldPage + 1,
       },
     });
     if (resp.data.list) {
@@ -39,6 +41,7 @@ const getNextPage = async () => {
     }
   } catch(e) {
     console.error(e);
+    return
   } finally {
     pulling = false
   }
@@ -54,20 +57,19 @@ onUnmounted(() => {
   oldState = utils.clone(state);
 })
 
-const onScroll = async (e: UIEvent) => {
-  if (utils.isScrollToBottom(e, 200) && utils.throttle(onScroll)) {
-    await getNextPage();
-  }
+const onRefresh = (deferred: Deferred<any>) => {
+  // 刷新
+  getNextPage(true).then(deferred.resolve).catch(deferred.reject);
 }
 
 </script>
 
 <template>
-  <NavBar :has-back="false" title="HOME">
-    <div class="h-full overflow-scroll  hidden-scrollbar" @scroll="onScroll">
+  <NavBar :has-back="false" title="首页">
+    <Paging @refresh="onRefresh">
       <div v-for="(item) in state.list" :key="item.id">
         <Post :item="item"></Post>
       </div>
-    </div>
+    </Paging>
   </NavBar>
 </template>

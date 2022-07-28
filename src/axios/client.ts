@@ -2,30 +2,21 @@ import axios, { Method, AxiosPromise, AxiosRequestConfig, AxiosResponse } from "
 import JsonBigInt from "json-bigint"
 import router from "../pageRouter";
 import store from "../store";
-
-interface NetClient {
-  send(method: Method, model: string, func: string, config?: AxiosRequestConfig): AxiosPromise
-  post(model: string, func: string, config?: AxiosRequestConfig): AxiosPromise
-  get(model: string, func: string, config?: AxiosRequestConfig): AxiosPromise
-  put(model: string, func: string, config?: AxiosRequestConfig): AxiosPromise
-  delete(model: string, func: string, config?: AxiosRequestConfig): AxiosPromise
-  isLogined(): boolean
-  loginWithAccount(nick: string, pwd: string): Promise<boolean>
-  loginWithToken(): Promise<boolean>
-  isLoging: boolean;
-  waitingQueue: [DelayResolver, Method, string, string, AxiosRequestConfig?][]
-  getWaitingPromise(method: Method, model: string, func: string, config: AxiosRequestConfig | undefined): AxiosPromise;
-  logout(): void;
-}
+import LocalStorageController from "../utils/helper";
+import utils from "../utils/utils";
 
 interface DelayResolver {
   (value: AxiosResponse | PromiseLike<AxiosResponse>): void;
 }
+interface DelayRejector {
+  (reason?: string): void;
+}
 
-const client: NetClient = {} as NetClient;
-
-client.isLoging = false;
-client.waitingQueue = [];
+const tokenStorage = new LocalStorageController<string>({
+  key: '_t',
+  serializer: (value) => value.toString(),
+  deserializer: (raw) => raw,
+});
 
 const Authorization = "Authorization";
 
@@ -48,11 +39,26 @@ axiosInstance.interceptors.request.use((config) => {
 axiosInstance.interceptors.response.use((resp) => {
   console.log(`%c${(new Date()).toLocaleString()} [${resp.config.method}(${resp.status})]%o`, fontStyle.response, resp.config.url, resp.data)
   return resp;
-}, (err) => {
-  console.trace(err)
+}, async (err) => {
+  console.error(err)
   if (err.response && err.response.status == 401) {
     console.log("登录失效")
-    router.push('/login');
+    const config = err.config as AxiosRequestConfig;
+    // 如果是因为没有携带 Authorization 的话，重新登录
+    if (!config.headers?.[Authorization]) {
+      console.log("自动尝试重新登录")
+      let succ = await client.loginWithToken();
+      if (succ) {
+        console.log("尝试恢复请求...")
+        return await axiosInstance({ ...config });
+      } else {
+        console.log("登录失败")
+      }
+    } else {
+      // window.location.href = '/login'
+      utils.showTopTips("请先登录")
+      router.push('/login');
+    }
   }
   return Promise.reject(err)
 })
@@ -70,147 +76,164 @@ axiosInstance.defaults.transformResponse = [data => {
   return data
 }]
 
-export default client;
-
-const getSavedToken = () => localStorage.getItem('_t');
-const removeSavedToken = () => localStorage.removeItem('_t');
-
 const saveToken = (token: string): boolean => {
   if (typeof token !== 'string') {
     console.error("Setting token failed!", token);
     return false;
   }
   axiosInstance.defaults.headers.common[Authorization] = token;
-  localStorage.setItem('_t', token);
+  tokenStorage.set(token);
   console.log("登录成功");
   return true;
 }
 
-/**
- * 发送命令
- * @param method 
- * @param model 
- * @param func 
- * @param config 
- * @returns 
- */
-client.send = (method: Method, model: string, func: string, config?: AxiosRequestConfig) => {
-  if (client.isLoging) {
-    console.log('Waiting for Login');
-    return client.getWaitingPromise(method, model, func, config);
-  }
-  return axiosInstance({
-    ...config,
-    method: method,
-    url: `/${model}/${func}`,
-  });
-}
 
-client.get = client.send.bind(client, 'GET');
-client.post = client.send.bind(client, 'POST');
-client.put = client.send.bind(client, 'PUT');
-client.delete = client.send.bind(client, 'DELETE');
-
-client.getWaitingPromise = (method: Method, model: string, func: string, config: AxiosRequestConfig | undefined) => {
-  return new Promise<AxiosResponse>((resolve, _reject) => {
-    client.waitingQueue.push([resolve, method, model, func, config]);
-  })
-}
-
-/**
- * 
- * @returns 是否登录
- */
-client.isLogined = () => axiosInstance.defaults.headers.common[Authorization] != null;
-
-/**
- * 账号登录
- * @param nick 
- * @param pwd 
- */
-client.loginWithAccount = async (
-  nick: string,
-  pwd: string
-): Promise<boolean> =>
-  wrapLoginCall(() => client.post('user', 'login', {
-    data: { nick, pwd },
-    headers: {
-      [Authorization]: "Bearer 123"
+class Client {
+  isLoging: boolean = false;
+  /**
+   * 发送命令
+   * @param method http方法
+   * @param model 模块
+   * @param func 函数
+   * @param config axios配置
+   * @returns 
+   */
+  send(method: Method, model: string, func: string, config?: AxiosRequestConfig<any>): AxiosPromise<any> {
+    if (this.isLoging) {
+      console.log('Waiting for Login', model, func);
+      return this.getWaitingPromise(method, model, func, config);
     }
-  }));
-
-/**
- * token登录
- */
-client.loginWithToken = async (): Promise<boolean> => {
-  const token = getSavedToken();
-  if (token) {
-    let result = await wrapLoginCall(() => client.get('user', 'token_refresh', {
+    return axiosInstance({
+      ...config,
+      method: method,
+      url: `/${model}/${func}`,
+    });
+  }
+  post(model: string, func: string, config?: AxiosRequestConfig<any>) {
+    return this.send("POST", model, func, config);
+  }
+  get(model: string, func: string, config?: AxiosRequestConfig<any>) {
+    return this.send("GET", model, func, config);
+  }
+  put(model: string, func: string, config?: AxiosRequestConfig<any>) {
+    return this.send("PUT", model, func, config);
+  }
+  delete(model: string, func: string, config?: AxiosRequestConfig<any>) {
+    return this.send("DELETE", model, func, config);
+  }
+  /**
+   * @returns 是否登录
+   */
+  isLogined(): boolean {
+    return axiosInstance.defaults.headers.common[Authorization] != null;
+  }
+  /**
+   * 账号密码登录
+   * @param nick 账号
+   * @param pwd 密码
+   * @returns 
+   */
+  loginWithAccount(nick: string, pwd: string): Promise<boolean> {
+    return this.wrapLoginCall(() => this.post('user', 'login', {
+      data: { nick, pwd },
       headers: {
-        [Authorization]: token
+        [Authorization]: "Bearer 123"
       }
     }));
-    if (!result) {
-      removeSavedToken()
-    }
-    return result
   }
-  return false;
-}
-
-/**
- * 包装两种登录的方法
- * @param acitonCall
- * @returns 
- */
-const wrapLoginCall = async (
-  acitonCall: () => AxiosPromise
-): Promise<boolean> => {
-  try {
-    const request = acitonCall();
-    client.isLoging = true
-    const resp = await request;
-    client.isLoging = false
-    let token = resp.data["token"];
-    let user = resp.data["user"];
-    if (!token || !user) {
-      if (client.waitingQueue.length) {
-        client.waitingQueue = [];
+  /**
+   * token登录
+   * @returns 
+   */
+  async loginWithToken(): Promise<boolean> {
+    const token = tokenStorage.get();
+    if (token != null) {
+      console.log('缓存登录')
+      const result = await this.wrapLoginCall(() => this.get('user', 'token_refresh', {
+        headers: {
+          [Authorization]: token
+        }
+      }));
+      if (!result) {
+        tokenStorage.remove()
       }
-      return false;
+      return result
     }
-    let result = saveToken(token);
-    store.commit('changeUser', user);
-    
-    while(client.waitingQueue.length) {
-      let data = client.waitingQueue.shift()!;
-      let [resolve, method, model, func, config] = data;
-      try {
-        resolve(client.send(method, model, func, config))
-      } catch (e) {
-        console.error(e);
+    return false;
+  }
+  /**
+   * 退出登录
+   */
+  logout(): void {
+    delete axiosInstance.defaults.headers.common[Authorization] // 移除缓存
+    tokenStorage.remove() // 移除存储
+    store.commit('logout') // 清空登录数据
+    router.push('/login') // 跳转到登录页
+    window.location.reload() // 重新加载
+  }
+  /** 登录时的请求等待队列 */
+  private waitingQueue: [DelayResolver, DelayRejector, Method, string, string, (AxiosRequestConfig<any> | undefined)?][] = [];
+  private getWaitingPromise(method: Method, model: string, func: string, config: AxiosRequestConfig<any> | undefined): AxiosPromise<any> {
+    return new Promise<AxiosResponse>((resolve, reject) => {
+      this.waitingQueue.push([resolve, reject, method, model, func, config]);
+    })
+  }
+  /**
+   * 登录的包装方法
+   * @param acitonCall 登录的实际调用
+   * @returns 
+   */
+  private async wrapLoginCall(acitonCall: () => AxiosPromise): Promise<boolean> {
+    let resp: AxiosResponse;
+    /// 登录
+    try {
+      const request = acitonCall();
+      this.isLoging = true
+      resp = await request;
+      this.isLoging = false
+      let token = resp.data["token"];
+      let user = resp.data["user"];
+      if (!token || !user) {
+        throw Error("Login Response Error");
       }
-    }
+      let result = saveToken(token);
+      store.commit('changeUser', user);
 
-    if (router.currentRoute.value.name == "login") {
-      router.push("/")
-    }
+      // 登录成功，所有待请求的直接申请
+      let total = this.waitingQueue.length;
+      while (this.waitingQueue.length) {
+        let len = this.waitingQueue.length;
+        let data = this.waitingQueue.shift()!;
+        let [resolve, _, method, model, func, config] = data;
+        console.log(`处理延迟任务(${len}/${total}):`, model, func, config);
+        try {
+          const resp = await this.send(method, model, func, config);
+          resolve(resp);
+        } catch (e) {
+          console.error(e);
+        }
+      }
+      if (router.currentRoute.value.name == "login") {
+        router.push("/")
+      }
 
-    return result;
-  } catch (e) {
-    console.error(e)
-    return false
-  } finally {
-    client.isLoging = false
+      return result;
+    } catch (e) {
+      console.error(e)
+      // 登录失败 全部请求失败 reject
+      while (this.waitingQueue.length) {
+        let data = this.waitingQueue.shift()!;
+        let [_, reject] = data;
+        reject("Login Failed");
+      }
+      return false
+    } finally {
+      this.isLoging = false
+    }
   }
 }
 
-client.logout = () => {
-  delete axiosInstance.defaults.headers.common[Authorization]
-  removeSavedToken()
-  store.commit('logout')
-  router.push('/login')
-  window.location.reload()
-}
+const client = new Client();
+export default client;
 
 (window as any).client = client;

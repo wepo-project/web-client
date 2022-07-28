@@ -1,5 +1,8 @@
 import { Component, createApp, onUnmounted, h } from "vue";
 import Loading, { Props } from "../components/Loading.vue"
+import TopTips from "../components/TopTips.vue"
+import { deferred, Deferred } from "./deferred";
+
 
 /**
  * 工具类
@@ -114,6 +117,11 @@ class Utils {
         return new Promise(resolve => setTimeout(resolve, ms));
     }
 
+    /** 延迟 promise */
+    deferred<T>(): Deferred<T> {
+        return deferred();
+    }
+
     /**
      * 显示加载框
      * @param promise 
@@ -124,12 +132,23 @@ class Utils {
     }
 
     /**
+     * 显示顶部提示
+     */
+    showTopTips(text: string) {
+        return this.dynamicMount(TopTips, { text });
+    }
+
+    /**
      * 浅克隆
      * @param data 
      * @returns 
      */
     clone<T>(data: T): T {
-        return { ...data };
+        if (Array.isArray(data)) {
+            return [...data] as unknown as T
+        } else {
+            return { ...data };
+        }
     }
 
     /**
@@ -142,18 +161,6 @@ class Utils {
     }
 
     /**
-     * 是否滑动到底部
-     * @param e 
-     * @param offsetToBottom 
-     * @returns 
-     */
-    isScrollToBottom(e: UIEvent, offsetToBottom: number = 0): boolean {
-        const { target } = e;
-        const { scrollTop, clientHeight, scrollHeight } = target as any;
-        return scrollTop + clientHeight >= scrollHeight - offsetToBottom;
-    }
-
-    /**
      * 节流集合
      */
     #throttle_set = new Set<Function>();
@@ -161,19 +168,21 @@ class Utils {
     /**
      * 节流
      * @param func 
-     * @param interval 
-     * @returns 
+     * @param interval 单位：秒
+     * @returns { boolean } 返回 false 为不执行
      */
-    throttle(func: Function, interval: number = 1000): boolean {
+    throttle(func: Function, interval: number = 1): boolean {
         if (this.#throttle_set.has(func)) {
-            return true;
+            return false;
         }
         this.#throttle_set.add(func);
         setTimeout(() => {
             this.#throttle_set.delete(func);
-        }, interval)
-        return false;
+        }, interval * 1000)
+        return true;
     }
+
+
 }
 
 
