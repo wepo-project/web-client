@@ -7,10 +7,10 @@ import { onMounted, onUnmounted } from "@vue/runtime-core";
 import { reactive } from "vue";
 import client from "../axios/client";
 import { defaultPaging, PagingData, PostModel } from "../data";
-import Post from "./Post.vue";
-import NavBar from "./NavBar.vue";
+import Post from "../components/Post.vue";
+import NavBar from "../components/NavBar.vue";
 import utils from "../utils/utils";
-import Paging from "./Paging.vue";
+import Paging from "../components/Paging.vue";
 import { Deferred } from "../utils/deferred";
 
 const state = reactive<PagingData<PostModel>>(
@@ -37,7 +37,11 @@ const getNextPage = async (initial = false) => {
     if (resp.data.list) {
       state.next = resp.data.next;
       state.page = resp.data.page;
-      state.list = [...state.list, ...resp.data.list];
+      if (initial) {
+        state.list = resp.data.list;
+      } else {
+        state.list = [...state.list, ...resp.data.list];
+      }
     }
   } catch(e) {
     console.error(e);
@@ -57,7 +61,7 @@ onUnmounted(() => {
   oldState = utils.clone(state);
 })
 
-const onRefresh = (deferred: Deferred<any>) => {
+const onRefresh = async (deferred: Deferred<any>) => {
   // 刷新
   getNextPage(true).then(deferred.resolve).catch(deferred.reject);
 }
@@ -66,7 +70,7 @@ const onRefresh = (deferred: Deferred<any>) => {
 
 <template>
   <NavBar :has-back="false" title="首页">
-    <Paging @refresh="onRefresh">
+    <Paging @refresh="onRefresh" @reach-bottom="getNextPage">
       <div v-for="(item) in state.list" :key="item.id">
         <Post :item="item"></Post>
       </div>

@@ -4,12 +4,12 @@ const routes: RouteRecordRaw[] = [
     {
         path: '/',
         name: "home",
-        component: () => import('./components/Home.vue'),
+        component: () => import('./pages/Home.vue'),
     },
     {
         path: '/login',
         name: 'login',
-        component: () => import('./components/Login.vue'),
+        component: () => import('./pages/Login.vue'),
     },
     {
         path: '/reg',
@@ -24,28 +24,34 @@ const routes: RouteRecordRaw[] = [
     {
         path: '/me',
         name: "me",
-        component: () => import('./components/Me.vue'),
+        component: () => import('./pages/Me.vue'),
     },
     {
-        path: '/my_post',
+        path: '/me/my_post',
         name: "my_post",
-        component: () => import('./components/MyPost.vue'),
+        component: () => import('./pages/MyPost.vue'),
     },
     {
         path: '/po/:id',
         name: 'po',
-        component: () => import('./components/PostDetail.vue'),
+        component: () => import('./pages/PostDetail.vue'),
     },
     {
         path: '/notification',
         name: 'notification',
-        component: () => import('./components/Notification.vue'),
+        component: () => import('./pages/Notification.vue'),
     }
 ]
 
 const router = createRouter({
     history: createWebHistory(),
     routes,
+})
+
+router.afterEach((to, from) => {
+    const toDepth = to.path.split('/').length;
+    const fromDepth = from.path.split('/').length;
+    to.meta.transitionName = toDepth < fromDepth ? 'slide-right' : 'slide-left'
 })
 
 export default router;

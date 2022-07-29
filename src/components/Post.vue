@@ -98,16 +98,19 @@ const check_detail = () => {
       </div>
       <template v-if="item!.origin_id">
         <div class="block drop-shadow-md reference_content dark:filter-none rounded-md p-2 mb-2"
-          @click.stop="$router.push({ name: 'po', params: { id: item!.origin_id! } })">
+          @click.stop="item!.origin_content && $router.push({ name: 'po', params: { id: item!.origin_id } })">
           <div class="text-sm text-gray-400 mb-1">原文</div>
-          <div class="flex pb-2">
-            <img class="avatar rounded" :src="item!.origin_sender!.avatar_url" alt="avatar" />
-            <div class="flex flex-col ml-2">
-              <div class="dark-white">{{ item!.origin_sender!.nick }}</div>
-              <div class="text-sm text-gray-500">{{ utils.format_time(item!.origin_create_time!) }}</div>
+          <template v-if="item!.origin_content">
+            <div class="flex pb-2">
+              <img class="avatar rounded" :src="item!.origin_sender!.avatar_url" alt="avatar" />
+              <div class="flex flex-col ml-2">
+                <div class="dark-white">{{ item!.origin_sender!.nick }}</div>
+                <div class="text-sm text-gray-500">{{ utils.format_time(item!.origin_create_time!) }}</div>
+              </div>
             </div>
-          </div>
-          <div class="dark-white text-sm whitespace-pre-line">{{ item!.origin_content! }}</div>
+            <div class="dark-white text-sm whitespace-pre-line">{{ item!.origin_content! }}</div>
+          </template>
+          <div v-else class="text-gray-400 text-sm whitespace-pre-line">已被删除</div>
         </div>
       </template>
       <div class="flex items-center h-8" @click.stop="void">
@@ -118,7 +121,7 @@ const check_detail = () => {
         <Hate v-bind:hated="state.hated" @click="hate" />
         <div class="ml-1 mr-2 dark-white select-none">{{ state.hate_count }}</div>
         <div v-if="showDelete && state.is_me"
-          class="ml-auto text-stone-400 cursor-pointer border border-transparent px-2 rounded-md hidden group-hover:block hover:border-gray-100 hover:shadow-md hover:text-red-500"
+          class="ml-auto text-stone-400 cursor-pointer border select-none border-transparent px-2 rounded-md hover:border-gray-100 hover:shadow-md hover:text-red-500"
           @click.stop="deletePost">DELETE</div>
       </div>
     </div>

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import client from '../axios/client';
 import { RouterLink } from 'vue-router';
-import NavBar from './NavBar.vue';
+import NavBar from '../components/NavBar.vue';
 import store from '../store';
 const user = store.state.user;
 const logout = () => {
@@ -20,7 +20,7 @@ const logout = () => {
             <div class="ml-auto text-sm btn btn-blue " @click="logout">退出登录</div>
         </div>
         <div class="flex m-2">
-            <router-link :to="{name: 'my_post'}" class="flex-1 flex items-center justify-center">My Posts</router-link>
+            <router-link :to="{name: 'my_post'}" class="flex-1 flex items-center justify-center">我的内容</router-link>
         </div>
     </NavBar>
 </template>

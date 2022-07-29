@@ -3,8 +3,9 @@ import { onMounted } from "@vue/runtime-core";
 import { reactive } from "vue";
 import client from "../axios/client";
 import { defaultPaging, PagingData, PostModel } from "../data";
-import Post from "./Post.vue";
-import NavBar from "./NavBar.vue";
+import Post from "../components/Post.vue";
+import NavBar from "../components/NavBar.vue";
+import utils from "../utils/utils";
 
 const state = reactive<PagingData<PostModel>>(
   defaultPaging()
@@ -23,19 +24,15 @@ const getNextPage = async () => {
 };
 
 onMounted(async () => {
-  await getNextPage();
+  utils.showLoading(getNextPage());
 });
 
 </script>
 
 <template>
-  <NavBar title="My Posts">
+  <NavBar title="我的">
     <div v-for="(item) in state.list" :key="item.id">
       <Post :item="item" :show-delete="true"></Post>
-      <br />
-    </div>
-    <div v-if="!state.list || !state.list.length">
-      You Haven't Send Any Post.
     </div>
   </NavBar>
 </template>

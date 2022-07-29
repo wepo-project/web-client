@@ -2,6 +2,7 @@ import { Component, createApp, onUnmounted, h } from "vue";
 import Loading, { Props } from "../components/Loading.vue"
 import TopTips from "../components/TopTips.vue"
 import { deferred, Deferred } from "./deferred";
+import LocalStorageController from "./helper";
 
 
 /**
@@ -92,13 +93,14 @@ class Utils {
      * @param comp 
      * @param props 
      */
-    dynamicMount<P = any>(comp: Component<P>, props?: Record<string, unknown>): Promise<any> {
+    dynamicMount<P = any>(comp: Component<P>, props?: Record<string, unknown>, onClose?: () => void): Promise<any> {
         return new Promise(resolve => {
             let root = h(comp as any, {
                 onClose: () => {
                     app.unmount();
                     document.body.removeChild(div);
                     resolve(null)
+                    onClose?.call(null)
                 }
             })
             const app = createApp(root, { ... props });
@@ -122,13 +124,20 @@ class Utils {
         return deferred();
     }
 
+    /** 当前已经有加载框了 */
+    #haveLoading = false
     /**
      * 显示加载框
      * @param promise 
      * @returns 
      */
     showLoading(promise: Promise<any>) {
-        return this.dynamicMount(Loading as any, { promise });
+        // XXX 暂时只允许一个Loading框
+        if (this.#haveLoading) return
+        this.#haveLoading = true
+        return this.dynamicMount(Loading as any, { promise }, () => {
+            this.#haveLoading = false
+        });
     }
 
     /**
@@ -182,7 +191,33 @@ class Utils {
         return true;
     }
 
+    /**
+     * 原始字符串的存储
+     * @param key 
+     * @returns 
+     */
+    localStorageController_String(key: string) {
+        return new LocalStorageController<string>({
+            key,
+            serializer: (value) => value.toString(),
+            deserializer: (raw) => raw,
+        });
+    }
 
+    /**
+     * 验证
+     * @param plist 
+     * @returns 
+     */
+    validate(...plist: [boolean, string][]): boolean {
+        for(var [val, msg] of plist) {
+            if (!val) {
+                this.showTopTips(msg);
+                return false
+            }
+        }
+        return true;
+    }
 }
 
 

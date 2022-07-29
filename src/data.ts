@@ -41,9 +41,9 @@ export interface NoticeComment {
     sender: UserData,
     content: string,
     create_time: string,
-    origin: string,
     origin_id: string,
-    origin_create_time: string,
+    origin: string | null,
+    origin_create_time: string | null,
 }
 
 export interface NoticePost {
@@ -51,8 +51,8 @@ export interface NoticePost {
     sender: UserData,
     post_id: string,
     read: boolean,
-    content: string,
-    create_time: string,
+    content: string | null,
+    create_time: string | null,
 }
 
 export interface NoticeFriend {

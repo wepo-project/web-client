@@ -3,8 +3,8 @@ import { onMounted, reactive, ref, watch } from 'vue';
 import client from '../axios/client';
 import { PostModel } from '../data';
 import router from '../pageRouter';
-import Post from './Post.vue';
-import NavBar from './NavBar.vue';
+import Post from '../components/Post.vue';
+import NavBar from '../components/NavBar.vue';
 import utils from '../utils/utils';
 
 let id: string
@@ -17,6 +17,7 @@ let state = reactive({
 onMounted(async () => {
   id = router.currentRoute.value.params.id as string;
   console.log(`id: ${id}`, router.currentRoute.value)
+  if (!id) return
 
   const fut = client.get('post', 'get_post', {
     params: { id },
@@ -64,7 +65,6 @@ async function onComment() {
     <template v-if="state.comments && state.comments.length">
       <div v-for="(item) in state.comments">
         <Post :item="item"></Post>
-        <br />
       </div>
     </template>
   </NavBar>

@@ -37,6 +37,7 @@
     }
 }
 
+
 @layer utilities {
     .hidden-scrollbar {
         -ms-overflow-style: none;
@@ -51,4 +52,15 @@
     .content_container .reference_content {
         @apply bg-[#fcfcfc] dark:bg-[#2c313c];
     }
+}
+
+
+body::before {
+    content: '';
+    width: 100%;
+    height: 100%;
+    position: fixed;
+    z-index: -1;
+    top: 0;
+    left: 0;
 }

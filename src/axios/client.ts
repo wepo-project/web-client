@@ -12,11 +12,7 @@ interface DelayRejector {
   (reason?: string): void;
 }
 
-const tokenStorage = new LocalStorageController<string>({
-  key: '_t',
-  serializer: (value) => value.toString(),
-  deserializer: (raw) => raw,
-});
+const tokenStorage = utils.localStorageController_String('_t');
 
 const Authorization = "Authorization";
 
@@ -76,17 +72,22 @@ axiosInstance.defaults.transformResponse = [data => {
   return data
 }]
 
-const saveToken = (token: string): boolean => {
-  if (typeof token !== 'string') {
-    console.error("Setting token failed!", token);
-    return false;
-  }
-  axiosInstance.defaults.headers.common[Authorization] = token;
-  tokenStorage.set(token);
-  console.log("登录成功");
-  return true;
+type ClientConfig = AxiosRequestConfig & ClientAdditionConfig;
+
+interface ClientAdditionConfig {
+  /** 错误码映射，如果为字符串则自动弹出提示，如果为函数，则执行 */
+  code?: ClientConfigCodeMap
+  /** 成功回调，返回值不包括 code 的情况才会触发 */
+  onSuccess?: RespCallback
+  /** 失败回调，try-catch 捕获代码块抛出的错误 */
+  onFailed?: (e: any) => void
+  /** 完成回调，不管成功与失败都会执行 */
+  onCompleted?: () => void
 }
 
+type ClientConfigCodeMap = { [code: number]: CodeValue }
+type CodeValue = string | RespCallback;
+type RespCallback = (arg: AxiosResponse) => void;
 
 class Client {
   isLoging: boolean = false;
@@ -98,27 +99,69 @@ class Client {
    * @param config axios配置
    * @returns 
    */
-  send(method: Method, model: string, func: string, config?: AxiosRequestConfig<any>): AxiosPromise<any> {
+  async send(method: Method, model: string, func: string, config?: ClientConfig): Promise<AxiosResponse<any, any>> {
     if (this.isLoging) {
       console.log('Waiting for Login', model, func);
       return this.getWaitingPromise(method, model, func, config);
     }
-    return axiosInstance({
-      ...config,
-      method: method,
-      url: `/${model}/${func}`,
-    });
+    // 错误码处理
+    const code_map: ClientConfigCodeMap = {};
+    if (config?.code) {
+      Object.assign(code_map, config?.code);
+      delete config!.code;
+    }
+    // 回调
+    const onSuccess = config?.onSuccess;
+    const onFailed = config?.onFailed;
+    const onCompleted = config?.onCompleted;
+
+    // 删除字段
+    onSuccess && (delete config.onSuccess);
+    onFailed && (delete config.onFailed);
+    onCompleted && (delete config.onCompleted);
+
+    try {
+      const resp = await axiosInstance({
+        ...config,
+        method: method,
+        url: `/${model}/${func}`,
+      });
+      let code = resp.data.code;
+      // 错误码处理
+      if (typeof code === 'number') {
+        if (code in code_map) {
+          let item = code_map[code];
+          if (typeof item === "string") {
+            utils.showTopTips(item);
+          } else if (typeof item === 'function') {
+            try {
+              item(resp);
+            } catch (e) {
+              console.error(e);
+            }
+          }
+        }
+      } else {
+        onSuccess?.(resp);
+      }
+      return resp;
+    } catch (e) {
+      onFailed?.(e);
+      throw e;
+    } finally {
+      onCompleted?.();
+    }
   }
-  post(model: string, func: string, config?: AxiosRequestConfig<any>) {
+  post(model: string, func: string, config?: ClientConfig) {
     return this.send("POST", model, func, config);
   }
-  get(model: string, func: string, config?: AxiosRequestConfig<any>) {
+  get(model: string, func: string, config?: ClientConfig) {
     return this.send("GET", model, func, config);
   }
-  put(model: string, func: string, config?: AxiosRequestConfig<any>) {
+  put(model: string, func: string, config?: ClientConfig) {
     return this.send("PUT", model, func, config);
   }
-  delete(model: string, func: string, config?: AxiosRequestConfig<any>) {
+  delete(model: string, func: string, config?: ClientConfig) {
     return this.send("DELETE", model, func, config);
   }
   /**
@@ -138,9 +181,15 @@ class Client {
       data: { nick, pwd },
       headers: {
         [Authorization]: "Bearer 123"
+      },
+      code: {
+        201: '请输入密码',
+        202: '密码错误',
+        203: '用户不存在',
       }
     }));
   }
+
   /**
    * token登录
    * @returns 
@@ -171,13 +220,18 @@ class Client {
     router.push('/login') // 跳转到登录页
     window.location.reload() // 重新加载
   }
+
+  /** axios 只读实例 */
+  get axiosInstance() { return axiosInstance }
+
   /** 登录时的请求等待队列 */
-  private waitingQueue: [DelayResolver, DelayRejector, Method, string, string, (AxiosRequestConfig<any> | undefined)?][] = [];
-  private getWaitingPromise(method: Method, model: string, func: string, config: AxiosRequestConfig<any> | undefined): AxiosPromise<any> {
+  private waitingQueue: [DelayResolver, DelayRejector, Method, string, string, (ClientConfig | undefined)?][] = [];
+  private getWaitingPromise(method: Method, model: string, func: string, config: ClientConfig | undefined): AxiosPromise<any> {
     return new Promise<AxiosResponse>((resolve, reject) => {
       this.waitingQueue.push([resolve, reject, method, model, func, config]);
     })
   }
+
   /**
    * 登录的包装方法
    * @param acitonCall 登录的实际调用
@@ -196,7 +250,17 @@ class Client {
       if (!token || !user) {
         throw Error("Login Response Error");
       }
-      let result = saveToken(token);
+      let result: boolean
+      if (typeof token !== 'string') {
+        console.error("Setting token failed!", token);
+        result = false;
+      } else {
+        axiosInstance.defaults.headers.common[Authorization] = token;
+        tokenStorage.set(token);
+        console.log("登录成功");
+        result = true;
+      }
+
       store.commit('changeUser', user);
 
       // 登录成功，所有待请求的直接申请

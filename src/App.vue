@@ -1,10 +1,8 @@
 <script setup lang="ts">
-import { useRoute } from 'vue-router';
 import { onMounted, reactive } from 'vue';
 import client from './axios/client';
 import router from './pageRouter';
 import Tabbar from './components/Tabbar.vue';
-const route = useRoute()
 
 const state = reactive({
   isLogined: false,
@@ -32,8 +30,31 @@ const onAuth = () => {
 <template>
   <div class="flex flex-col h-screen">
     <router-view @auth="onAuth" class="flex-auto overflow-scroll hidden-scrollbar" v-slot="{ Component }">
-      <component :is="Component" :key="route.fullPath"></component>
+      <transition name="fade" mode="out-in">
+        <component :is="Component" :key="$route.fullPath"></component>
+      </transition>
     </router-view>
     <tabbar v-if="state.isLogined"></tabbar>
   </div>
 </template>
+
+<style lang="css">
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.2s ease;
+}
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
+@keyframes slide-left {
+  from {
+    transform: translateX(100vw);
+  }
+}
+@keyframes slide-right {
+  to {
+    transform: translateX(100vw);
+  }
+}
+</style>

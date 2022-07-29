@@ -3,9 +3,9 @@ import { onMounted, reactive, watch } from 'vue';
 import client from '../axios/client';
 import { NoticeComment, PagingData, defaultPaging, NoticePost, NoticeFriend } from '../data';
 import utils from '../utils/utils';
-import NavBar from './NavBar.vue';
-import Tabs, { Tab } from './Tabs.vue';
-import SideBar from './SideBar.vue';
+import NavBar from '../components/NavBar.vue';
+import Tabs, { Tab } from '../components/Tabs.vue';
+import SideBar from '../components/SideBar.vue';
 
 
 const comments_tab: Tab = { name: "评论", emoji: "📩" };
@@ -111,12 +111,15 @@ async function _get_data(model: string, func: string, field: keyof typeof state)
                             </div>
                         </div>
                         <div class="mb-2 text-base dark-white whitespace-pre-line">{{ item.content }}</div>
-                        <div :to="{ name: 'po', params: { id: item.origin_id } }"
+                        <div @click.stop="$router.push({ name: 'po', params: { id: item.origin_id } })"
                             class="reference_content block cursor-pointer rounded p-2">
-                            <div class="mb-1 text-xs dark:text-gray-200 whitespace-pre-line">{{ item.origin }}
-                            </div>
-                            <div class="text-xs text-gray-500">{{ utils.format_time(item.origin_create_time) }}
-                            </div>
+                            <template v-if="item.origin != null">
+                                <div class="mb-1 text-xs dark:text-gray-200 whitespace-pre-line">{{ item.origin }}
+                                </div>
+                                <div class="text-xs text-gray-500">{{ utils.format_time(item.origin_create_time!) }}
+                                </div>
+                            </template>
+                            <div v-else class="text-xs text-gray-500">原文已删除</div>
                         </div>
                     </div>
                 </template>
@@ -134,7 +137,7 @@ async function _get_data(model: string, func: string, field: keyof typeof state)
                                     <span class="text-sm mr-2 text-neutral-500 dark:text-neutral-400"> 赞了你</span>
                                 </div>
                                 <div class="text-xs text-gray-500">{{
-                                        utils.format_time(item.create_time, utils.MONTH)
+                                        utils.format_time(item.create_time!, utils.MONTH)
                                 }}
                                 </div>
                             </div>
@@ -158,7 +161,7 @@ async function _get_data(model: string, func: string, field: keyof typeof state)
                                         }}</span>
                                     <span class="text-sm mr-2 text-neutral-500 dark:text-neutral-400"> 反感了你</span>
                                 </div>
-                                <div class="text-xs text-gray-500">{{ utils.format_time(item.create_time, utils.MONTH)
+                                <div class="text-xs text-gray-500">{{ utils.format_time(item.create_time!, utils.MONTH)
                                 }}
                                 </div>
                             </div>
