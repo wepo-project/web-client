@@ -1,8 +1,18 @@
 const ROOT_NAME = "@ROOT";
-const SPLIT = "/";
-type JoinType<A extends string, B extends string> = `${A}${typeof SPLIT}${B}`
+type SPLIT = "/";
+type JoinType<A extends string, B extends string> = `${A}${SPLIT}${B}`
 type Callback = (val: number) => void;
 
+export type ExtractType<Type> = Type extends NotificationTree<infer P, infer C> ? NotificationTree<P, C> : never;
+export type ExtractPrev<Type> = Type extends NotificationTree<infer P, string> ? P : never;
+export type ExtractCurr<Type> = Type extends NotificationTree<string, infer C> ? C : never;
+
+/**
+ * NotificationTree
+ * The `ROOT` instance can only be instantiated once.
+ * Prev: ancestors path
+ * Curr: children names
+ */
 export class NotificationTree<Prev extends string = string, Curr extends string = string> {
     static ROOT: NotificationTree | null = null;
 
@@ -48,7 +58,11 @@ export class NotificationTree<Prev extends string = string, Curr extends string 
     private expandChildren(childrenName: Curr[]) {
         const children: typeof this.children = {} as any;
         for (const name of childrenName) {
-            children[name] = new NotificationTree(this as any, name, []);
+            if (children[name] === void 0) {
+                children[name] = new NotificationTree(this as any, name, []);
+            } else {
+                console.warn(`duplicate node name: ${name}`);
+            }
         }
         this.children = children;
     }
@@ -122,8 +136,12 @@ export class NotificationTree<Prev extends string = string, Curr extends string 
      * @param childName 
      * @returns 
      */
-    getChild(childName: Curr) {
-        return this.children[childName]
+    getChild<N extends Curr, C extends string>(childName: N): Omit<NotificationTree<JoinType<Prev, N>, C>, 'getChild'> {
+        if (childName in this.children) {
+            return this.children[childName]
+        } else {
+            throw new Error(`${childName} is not [${this.name}]'s child`);
+        }
     }
 
     /**
@@ -155,7 +173,10 @@ export class NotificationTree<Prev extends string = string, Curr extends string 
     }
 
     /**
-     * dump valud to console to show value intuitively in console
+     * @en
+     * dump value to console to show value intuitively in console
+     * @zh
+     * 在控制台以一棵树的形状打印所有值
      */
     dump() {
         console.groupCollapsed(`${this.name} -> ${this.value}`);
@@ -170,13 +191,3 @@ export class NotificationTree<Prev extends string = string, Curr extends string 
         console.groupEnd();
     }
 }
-
-const root = NotificationTree.root(['notification', 'me']);
-
-export const red ={
-    root,
-    notification: root.expand('notification', ['comment', 'like']),
-    me: root.expand('me', ['followers']),
-}
-
-; (window as any).red = red;

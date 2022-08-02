@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { onMounted, onUnmounted, reactive } from 'vue';
+import { onUnmounted, reactive } from 'vue';
 import { NotificationTree } from '../utils/notificationTree.js';
 
 const props = defineProps<{
@@ -13,7 +13,7 @@ const state = reactive({
 const listener = (val: number) => {
     state.value = val;
 }
-
+    
 const handler = props.tree?.listen(listener)
 
 onUnmounted(() => {
