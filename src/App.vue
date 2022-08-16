@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onMounted, reactive } from 'vue';
 import client from './axios/client';
-import router from './pageRouter';
+import router, { routerTransitionDuration } from './router';
 import Tabbar from './components/Tabbar.vue';
 
 const state = reactive({
@@ -28,9 +28,9 @@ const onAuth = () => {
 </script>
 
 <template>
-  <div class="flex flex-col h-screen">
+  <div class="flex flex-col h-screen overflow-hidden">
     <router-view @auth="onAuth" class="flex-auto overflow-scroll hidden-scrollbar" v-slot="{ Component }">
-      <transition name="fade" mode="out-in">
+      <transition name="fade" mode="out-in" :duration="routerTransitionDuration">
         <component :is="Component" :key="$route.fullPath"></component>
       </transition>
     </router-view>

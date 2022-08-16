@@ -1,6 +1,6 @@
 import { createApp } from 'vue'
 import App from './App.vue'
-import Router from './pageRouter';
+import Router from './router';
 import store from './store';
 import VConsole from "vconsole";
 import { initPlugin } from "vue-vconsole-devtools";

@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { ref } from 'vue'
 import client from '../axios/client'
-import router from '../pageRouter';
+import router from '../router';
 import utils from '../utils/utils';
 
 const nickRef = ref('')

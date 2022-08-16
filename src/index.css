@@ -27,7 +27,7 @@
     }
     
     .dark-white {
-        @apply dark:text-white;
+        @apply dark:text-gray-200;
     }
 }
 

@@ -1,9 +1,13 @@
 <script lang="ts" setup>
 import { reactive } from 'vue';
+import { NotificationTree } from '../utils/notificationTree';
+import Badge from './Badge.vue';
 
 export interface Tab {
     emoji?: string
     name: string
+    /** 监听的红点 */
+    tree?: NotificationTree
 }
 const props = withDefaults(defineProps<{
     tabs: Tab[]
@@ -34,6 +38,7 @@ const onTabChange = (item: Tab, index: number) => {
                 @click="onTabChange(item, index)">
                 <span v-if="item.emoji" class="mr-1">{{item.emoji}} </span>
                 <span>{{ item.name }}</span>
+                <Badge :tree="item.tree" position="static" class="ml-auto"/>
             </div>
         </li>
     </ul>

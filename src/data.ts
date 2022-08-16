@@ -62,3 +62,11 @@ export interface NoticeFriend {
     msg: string,
     create_time: string,
 }
+
+export interface UnreadMsg {
+    comments: number
+    friend_add: number
+    friend_remove: number
+    hates: number
+    likes: number
+}

@@ -60,3 +60,34 @@ export default class LocalStorageController<T> {
         this.value = null;
     }
 }
+/**
+ * 字符串存储
+ */
+export class StorageString extends LocalStorageController<string> {
+    constructor(key: string, defaultValue?: string) {
+        super({
+            key: key, 
+            default: defaultValue, 
+            serializer: (val) => val,
+            deserializer: (val) => val,
+        });
+    }
+}
+
+/**
+ * 字符串存储
+ */
+ export class StorageBoolean extends LocalStorageController<boolean> {
+    constructor(key: string, defaultValue?: boolean) {
+        super({
+            key: key, 
+            default: defaultValue, 
+            serializer: (val) => val ? '1' : '',
+            deserializer: (val) => !!val,
+        });
+    }
+
+    change() {
+        this.set(!this.value);
+    }
+}

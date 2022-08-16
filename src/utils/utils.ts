@@ -191,17 +191,27 @@ class Utils {
         return true;
     }
 
+    #debounce_map = new Map<Function, Deferred<boolean>>();
     /**
-     * 原始字符串的存储
-     * @param key 
+     * 防抖
+     * @param func 
+     * @param interval 
      * @returns 
      */
-    localStorageController_String(key: string) {
-        return new LocalStorageController<string>({
-            key,
-            serializer: (value) => value.toString(),
-            deserializer: (raw) => raw,
-        });
+    async debounce(func: Function, interval: number = 2): Promise<boolean> {
+        const oldSignal = this.#debounce_map.get(func);
+        if (oldSignal) {
+            oldSignal.resolve(false);
+        }
+        const signal = deferred<boolean>();
+        this.#debounce_map.set(func, signal);
+        await this.delay(interval * 1000);
+
+        if (signal.state === 'pending') {
+            signal.resolve(true);
+            this.#debounce_map.delete(func);
+        }
+        return signal;
     }
 
     /**

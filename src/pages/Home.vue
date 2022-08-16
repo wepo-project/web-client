@@ -12,6 +12,8 @@ import NavBar from "../components/NavBar.vue";
 import utils from "../utils/utils";
 import Paging from "../components/Paging.vue";
 import { Deferred } from "../utils/deferred";
+import { red } from "../utils/red";
+import Tabbar from "../components/Tabbar.vue";
 
 const state = reactive<PagingData<PostModel>>(
   utils.clone(oldState)
@@ -55,6 +57,8 @@ onMounted(async () => {
   if (!state.list.length) {
     utils.showLoading(getNextPage());
   }
+  // await utils.delay(1000);
+  await red.getUnreadMsg();
 });
 
 onUnmounted(() => {
@@ -65,15 +69,22 @@ const onRefresh = async (deferred: Deferred<any>) => {
   // 刷新
   getNextPage(true).then(deferred.resolve).catch(deferred.reject);
 }
-
 </script>
 
 <template>
   <NavBar :has-back="false" title="首页">
-    <Paging @refresh="onRefresh" @reach-bottom="getNextPage">
-      <div v-for="(item) in state.list" :key="item.id">
-        <Post :item="item"></Post>
+    <div class="flex flex-col relative h-full">
+      <Paging @refresh="onRefresh" @reach-bottom="getNextPage">
+        <div v-for="(item) in state.list" :key="item.id">
+          <Post :item="item"></Post>
+        </div>
+      </Paging>
+      <!-- 发表按钮 -->
+      <div
+        class="absolute bottom-5 right-5 w-12 h-12 bg-blue-400 flex transition-all justify-center items-center text-white text-lg rounded-full shadow-lg select-none hover:bg-blue-500 active:bg-blue-300"
+        @click="$router.push('send')">
+        <span>+</span>
       </div>
-    </Paging>
+    </div>
   </NavBar>
 </template>

@@ -1,8 +1,8 @@
 import axios, { Method, AxiosPromise, AxiosRequestConfig, AxiosResponse } from "axios";
 import JsonBigInt from "json-bigint"
-import router from "../pageRouter";
+import router from "../router";
 import store from "../store";
-import LocalStorageController from "../utils/helper";
+import { StorageString } from "../utils/helper";
 import utils from "../utils/utils";
 
 interface DelayResolver {
@@ -12,7 +12,7 @@ interface DelayRejector {
   (reason?: string): void;
 }
 
-const tokenStorage = utils.localStorageController_String('_t');
+const tokenStorage = new StorageString('_t');
 
 const Authorization = "Authorization";
 
@@ -83,6 +83,8 @@ interface ClientAdditionConfig {
   onFailed?: (e: any) => void
   /** 完成回调，不管成功与失败都会执行 */
   onCompleted?: () => void
+  /** 是否让错误也通过 */
+  ignoreError?: boolean
 }
 
 type ClientConfigCodeMap = { [code: number]: CodeValue }
@@ -114,11 +116,13 @@ class Client {
     const onSuccess = config?.onSuccess;
     const onFailed = config?.onFailed;
     const onCompleted = config?.onCompleted;
+    const ignoreError = config?.ignoreError;
 
     // 删除字段
     onSuccess && (delete config.onSuccess);
     onFailed && (delete config.onFailed);
     onCompleted && (delete config.onCompleted);
+    ignoreError !== void 0 && (delete config!.ignoreError);
 
     try {
       const resp = await axiosInstance({
@@ -146,8 +150,17 @@ class Client {
       }
       return resp;
     } catch (e) {
-      onFailed?.(e);
-      throw e;
+      if (onFailed) {
+        onFailed!(e);
+      }
+      if (ignoreError) {
+        return {
+          status: 0,
+          statusText: 'ignore',
+          data: {},
+        } as AxiosResponse;
+      }
+      throw e
     } finally {
       onCompleted?.();
     }

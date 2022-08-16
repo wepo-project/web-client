@@ -37,33 +37,41 @@ const state = reactive({
 
 const like = async () => {
   let is_cancel = state.liked;
-  const resp = await client.get("post", is_cancel ? "cancel_like" : "like", {
-    params: { id },
-  });
-  if (resp.data.succ) {
-    state.liked = !is_cancel;
-    state.like_count += is_cancel ? -1 : 1;
-  }
-  // 之前点过赞了
-  else if (resp.data.code == 201) {
-    state.liked = !is_cancel
+  state.liked = !is_cancel;
+  state.like_count += is_cancel ? -1 : 1;
+
+  if (await utils.debounce(like)) {
+    const resp = await client.get("post", is_cancel ? "cancel_like" : "like", {
+      params: { id },
+    });
+    if (resp.data.succ) {
+      // 成功
+    }
   }
 };
 
 const hate = async () => {
   let is_cancel = state.hated;
-  const resp = await client.get("post", is_cancel ? "cancel_hate" : "hate", {
-    params: { id },
-  });
-  if (resp.data.succ) {
-    state.hated = !is_cancel;
-    state.hate_count += is_cancel ? -1 : 1;
-  }
-  // 之前点过赞了
-  else if (resp.data.code == 201) {
-    state.hated = !is_cancel
+  state.hated = !is_cancel;
+  state.hate_count += is_cancel ? -1 : 1;
+  if (await utils.debounce(hate)) {
+    const resp = await client.get("post", is_cancel ? "cancel_hate" : "hate", {
+      params: { id },
+    });
+    if (resp.data.succ) {
+    }
+    // 之前点过赞了
+    else if (resp.data.code == 201) {
+      state.hated = !is_cancel
+    }
   }
 };
+
+const comment = async () => {
+  router.push({
+    name: 'send',
+  });
+}
 
 const deletePost = async () => {
   await client.delete('post', 'delete', {
@@ -81,7 +89,8 @@ const check_detail = () => {
 
 <template>
   <template v-if="item != null">
-    <div class="block content_container p-3 border-b dark:border-gray-500 group" :class="collapse?'select-none':''" @click="check_detail">
+    <div class="block content_container p-3 border-b dark:border-gray-500 group" :class="collapse ? 'select-none' : ''"
+      @click="check_detail">
       <div class="flex pb-2">
         <img class="avatar rounded" :src="item!.sender.avatar_url" alt="avatar" />
         <div class="flex flex-col ml-2">
@@ -116,7 +125,7 @@ const check_detail = () => {
       <div class="flex items-center h-8" @click.stop="void">
         <Heart v-bind:liked="state.liked" @click="like" />
         <div class="ml-1 mr-2 dark-white select-none">{{ state.like_count }}</div>
-        <Comment />
+        <Comment @click="comment" />
         <div class="ml-1 mr-2 dark-white select-none">{{ state.comment_count }}</div>
         <Hate v-bind:hated="state.hated" @click="hate" />
         <div class="ml-1 mr-2 dark-white select-none">{{ state.hate_count }}</div>

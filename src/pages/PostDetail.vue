@@ -2,16 +2,18 @@
 import { onMounted, reactive, ref, watch } from 'vue';
 import client from '../axios/client';
 import { PostModel } from '../data';
-import router from '../pageRouter';
+import router from '../router';
 import Post from '../components/Post.vue';
 import NavBar from '../components/NavBar.vue';
 import utils from '../utils/utils';
+import { AxiosError } from 'axios';
 
 let id: string
 
 let state = reactive({
   post: null as PostModel | null,
   comments: [] as PostModel[],
+  notFound: false,
 })
 
 onMounted(async () => {
@@ -21,6 +23,12 @@ onMounted(async () => {
 
   const fut = client.get('post', 'get_post', {
     params: { id },
+    onFailed(e: AxiosError) {
+      if (e.response?.status === 404) {
+        state.notFound = true;
+      }
+    },
+    ignoreError: true,
   })
   utils.showLoading(fut);
   const resp = await fut
@@ -38,8 +46,9 @@ async function onComment() {
       data: {
         content: content.value,
         origin_id: id,
-      }
+      },
     });
+    console.log(resp);
     if (resp.data.id) {
       content.value = ""
       if (state.post) {
@@ -56,12 +65,12 @@ async function onComment() {
 
 <template>
   <NavBar title="详情">
-    <Post v-if="state.post" :item="state.post" :show-delete="true" :prevent-jump="true" :collapse="false"></Post>
-    <div class="h-2"></div>
-    <div class="flex flex-col px-2 my-2">
-      <textarea v-model="content" class="input w-full h-20 p-2 "></textarea>
-      <div class="btn btn-blue w-fit mt-2" @click="onComment">Comment</div>
+    <div v-if="state.notFound" class="flex flex-col justify-center items-center h-full">
+      <div class="text-2xl font-bold dark-white">404</div>
+      <div class="dark-white">内容不见了</div>
     </div>
+    <Post v-else-if="state.post" :item="state.post" :show-delete="true" :prevent-jump="true" :collapse="false"></Post>
+    <div class="h-2"></div>
     <template v-if="state.comments && state.comments.length">
       <div v-for="(item) in state.comments">
         <Post :item="item"></Post>

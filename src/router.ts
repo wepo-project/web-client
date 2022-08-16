@@ -19,7 +19,7 @@ const routes: RouteRecordRaw[] = [
     {
         path: '/send',
         name: "send",
-        component: () => import('./components/SendPost.vue'),
+        component: () => import('./pages/SendPost.vue'),
     },
     {
         path: '/me',
@@ -40,7 +40,7 @@ const routes: RouteRecordRaw[] = [
         path: '/notification',
         name: 'notification',
         component: () => import('./pages/Notification.vue'),
-    }
+    },
 ]
 
 const router = createRouter({
@@ -55,3 +55,4 @@ router.afterEach((to, from) => {
 })
 
 export default router;
+export const routerTransitionDuration = 300;

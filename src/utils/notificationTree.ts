@@ -32,7 +32,7 @@ export class NotificationTree<Prev extends string = string, Curr extends string 
      */
     static root<Name extends string = string>(children: Name[]): NotificationTree<typeof ROOT_NAME, Name> {
         if (this.ROOT) {
-            console.error(`can not create root node duplicatly`)
+            // console.warn(`can not create root node duplicatly`)
             return this.ROOT
         } else {
             const _root = new NotificationTree(null, ROOT_NAME, children);
@@ -79,6 +79,9 @@ export class NotificationTree<Prev extends string = string, Curr extends string 
      */
     private set value(newVal: number) {
         const delta = newVal - this._value;
+        if (delta === 0) {
+            return;
+        }
         if (this.parent) {
             this.parent!.value += delta;
         }
@@ -170,6 +173,10 @@ export class NotificationTree<Prev extends string = string, Curr extends string 
      */
     unListen(callback: Callback) {
         this.listener.delete(callback);
+    }
+
+    get $() {
+        return this.children;
     }
 
     /**
